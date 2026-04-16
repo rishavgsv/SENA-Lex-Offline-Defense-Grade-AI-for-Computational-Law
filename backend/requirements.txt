@@ -1,0 +1,11 @@
+fastapi<0.104.0
+uvicorn
+python-multipart
+pymupdf
+sentence-transformers
+faiss-cpu
+llama-cpp-python
+pydantic<2.0.0
+spacy<3.8.0
+networkx
+rank-bm25

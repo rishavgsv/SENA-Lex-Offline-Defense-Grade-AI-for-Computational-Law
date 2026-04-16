@@ -1,0 +1,62 @@
+# ════════════════════════════════════════════════
+# SENA-Lex .gitignore
+# ════════════════════════════════════════════════
+
+# ── Python ──────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+dist/
+build/
+*.egg
+.eggs/
+
+# ── Virtual Environments ───────────────────────
+venv/
+.venv/
+env/
+.env/
+
+# ── Backend Data (user-generated) ──────────────
+backend/data/*.faiss
+backend/data/*.npy
+backend/data/metadata.json
+
+# ── ML Models (too large for git) ──────────────
+backend/models/*.gguf
+backend/models/.cache/
+backend/models/all-MiniLM-L6-v2/
+
+# ── Node.js ────────────────────────────────────
+node_modules/
+frontend/node_modules/
+frontend/dist/
+frontend/dist-ssr/
+*.local
+package-lock.json
+
+# ── IDE & OS ───────────────────────────────────
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ── Logs ───────────────────────────────────────
+logs/
+*.log
+npm-debug.log*
+
+# ── Docker ─────────────────────────────────────
+.docker/
+
+# ── Tests & Misc ──────────────────────────────
+*.test.db
+test_doc.txt

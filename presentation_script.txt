@@ -1,0 +1,51 @@
+# Slide 1: Problem Statement, Overview & System Architecture
+
+## Bullet Points:
+*   **The Problem:** Commercial LLMs compromise Attorney-Client Privilege via external cloud inference.
+*   **The Solution (SENA-Lex):** A strictly offline "Defense-Grade" AI assistant processing legal NLP tasks entirely on local hardware.
+*   **System Architecture (Microservices):**
+    *   *Frontend:* React.js + Vite (Glassmorphism UI, Semantic Heatmaps)
+    *   *Backend API:* FastAPI managing Async Background Embedding tasks
+    *   *LLM Engine:* Local Ollama daemon running 'sena-lex-mistral' natively
+*   **NLP Pipeline Flow:** Document Upload → Semantic Chunking → Vectorization (`nomic-embed-text`) → Hybrid Retrieval → Multi-Hop Query Synthesis → Confidence Engine Verification → Streamed Output.
+
+## Speaker Notes:
+"Good morning, I am Rishav Kumar, Roll: 23AI043, and this is SENA-Lex. The fundamental bottleneck in computational law is privacy. You cannot send 500-page proprietary contracts to ChatGPT without violating privilege. I engineered SENA-Lex to bridge this gap. Our NLP pipeline is entirely offline. When a document is ingested, it is sequentially chunked, passed through a native embedding model, indexed using dual similarity algorithms, and evaluated mechanically by a proprietary Confidence Engine before being streamed directly to the user via a React interface. No data ever leaves the device."
+
+---
+
+# Slide 2: Core NLP Concepts & Mathematical Formulation
+
+## Bullet Points:
+*   **Semantic Vector Embedding Space:**
+    *   Mapping English clauses into dense continuous N-dimensional numerical representations mathematically clustering similar semantics.
+*   **FAISS (Dense Semantic Retrieval):**
+    *   Computes Euclidean Distance $d(x, y) = ||x - y||_2$. Lower distance equates to higher contextual closeness.
+*   **BM25 Okapi Algorithm (Sparse Lexical Retrieval):**
+    *   Statistical matching based on Term Frequency-Inverse Document Frequency (TF-IDF), crucial for exact legal identifiers (e.g., "Docket 45A").
+*   **Hybrid Search Mathematical Fusion:**
+    *   Final Retrieval Score Formula: `(0.7 * FAISS_Score) + (0.3 * BM25_Score)`
+    *   Fuses contextual conceptual understanding with hard lexical intersection.
+*   **Entity Clustering via Knowledge Graphs (NetworkX):** Nodes/Edges linking deterministic contract variables visually.
+
+## Speaker Notes:
+"To make the RAG pipeline highly accurate, we rely on heavy mathematical optimization. Typical document QA relies purely on semantic search. That's a mistake in law. If a lawyer queries 'Article 14', the model could mistakenly pull 'Section 14' because the semantics are identical. I solved this by building a Hybrid Retrieval Engine. Mathematically, it runs Facebook AI Similarity Search (FAISS) using $L_2$ norms to find contextual meaning, while concurrently firing BM25 Okapi to run TF-IDF analysis for exact keyword intersection. We weigh these dynamically: 70% FAISS mapping plus 30% BM25 mapping. This guarantees retrieval that understands both the 'spirit' and the 'letter' of the user's prompt."
+
+---
+
+# Slide 3: Implementation, Innovations & Future Scope
+
+## Bullet Points:
+*   **Algorithmic Innovation: Confidence Engine v2**
+    *   An autonomous "Auditor" intercepts LLM generation to detect and prevent hallucination systematically.
+*   **The 5-Dimensional Verification Trace:**
+    *   1. *Retrieval Relevance:* $score > 0.7$
+    *   2. *Answer Faithfulness:* Vector Dot Product $\sum_{i} a_i b_i$ ensuring AI draft mathematically aligns with source PDF vectors.
+    *   3. *Cross-Chunk Agreement:* Inter-document contradiction detection.
+    *   4. *Citation Coverage / Query Coverage:* Source verification bindings.
+*   **Specialized Aspect-Based Routing:**
+    *   Enforced LLM native JSON output bindings enabling strictly parsed 'Semantic Risk Heatmaps' over contracts.
+*   **Future Scope:** Integrate vLLM continuous batching for concurrent enterprise query handling, and graph-database native Cypher queries (GraphRAG) replacing localized NetworkX maps.
+
+## Speaker Notes:
+"Our most robust optimization is our solution to Large Language Model Hallucination: The Confidence Engine v2. Instead of letting the LLM speak blindly, the system caches the generated draft answer and fires a parallel evaluation matrix. Mathematically, we calculate Answer Faithfulness by running a Dot Product derivation between the draft text's numerical vector and the original PDF's vector. If the mathematical similarity drops below a safe threshold—or if Citation Coverage fails—the AI is blocked from answering. This transforms an impressive Language Model into a mathematically defensible Legal Logic tool. Thank you."

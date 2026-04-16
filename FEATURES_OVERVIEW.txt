@@ -1,0 +1,36 @@
+SENA-Lex: Personal AI Legal Assistant
+Current Features & Capabilities
+
+1. Defense-Grade Local Environment
+-----------------------------------
+- 100% Offline Workloads: Absolute privacy with zero network dependencies for generating answers.
+- Intelligent Backend: High-speed FastAPI application handling all processing locally.
+- Unified Docker Deployment: One-click spin-up via Docker Compose orchestrating the Backend, Frontend, and Ollama Engine.
+- Flexible Native Execution: Hot-swappable environment variables allow the platform to run natively on Windows/macOS without a Docker daemon while maintaining secure Ollama fallbacks.
+
+2. Advanced Document Intelligence (RAG Pipeline)
+-----------------------------------
+- Multi-File Format Support: Drag-and-Drop parsing for .pdf, .docx, and .txt files.
+- Hybrid Search Engine: Fuses FAISS vector embeddings (dense) with BM25 Okapi algorithms (sparse), retrieving highly accurate clauses using multi-stage scoring.
+- Knowledge Graph Mapping: Automatically constructs relationship graphs (via NetworkX) clustering clauses, legal parties, entities, and dates for deep structural understanding.
+- Semantic Chunking: Intelligently breaks down extensive legal documents into searchable paragraph clusters.
+
+3. Core LLM Functionality
+-----------------------------------
+- Real-Time Streaming Output: Connects via Server-Sent Events (SSE) so the AI replies type out live instantly rather than buffering for 30 seconds.
+- Multi-Hop Reasoning: Decomposes complex user queries into sub-queries, drastically increasing the logic ceiling for challenging contractual questions.
+- Anti-Hallucination Verification: Injects a mandatory "auditor" trace into the LLM pipeline that aggressively intercepts and flags unverified claims before they reach the user.
+- Confidence Diagnostics: The LLM exposes an "under-the-hood" visual confidence rating directly above its messages derived from algorithmic vector proximity scoring.
+
+4. Purpose-Built Legal Agent Operations
+-----------------------------------
+- One-Click Document Summarization: Instead of writing complex prompts, users can click a button to receive a dedicated 3-sentence summary highlighting the document's primary purpose.
+- Express Risk & Violation Detection: Specialized legal prompting that automatically scans the document explicitly for hidden liabilities, punitive clauses, and compliance violations with page mapping.
+- Comparative Contract Analysis: Dedicated endpoints dynamically fuse clauses from two distinct documents to analyze legal differentials, conflicts, and liabilities.
+
+5. UI/UX "Vite + React" Workstation
+-----------------------------------
+- Semantic Risk Heatmaps: Automatically overrides standard document viewing modes with a color-coded "Risk Map" interface (Red/Yellow/Green bounds) visually isolating liabilities.
+- Source Attribution Viewer: A dedicated split-pane interface representing the actual PDF pages mapped to the AI's claims, creating strong AI explainability.
+- Glassmorphism UI: The platform features a highly responsive and aesthetically refined dark-mode dashboard.
+- Dynamic Status Dashboard: The sidebar continually polls the system to detect if the API or Ollama Backend unexpectedly lose connectivity.
