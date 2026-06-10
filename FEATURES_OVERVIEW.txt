@@ -12,7 +12,7 @@ Current Features & Capabilities
 -----------------------------------
 - Multi-File Format Support: Drag-and-Drop parsing for .pdf, .docx, and .txt files.
 - Hybrid Search Engine: Fuses FAISS vector embeddings (dense) with BM25 Okapi algorithms (sparse), retrieving highly accurate clauses using multi-stage scoring.
-- Knowledge Graph Mapping: Automatically constructs relationship graphs (via NetworkX) clustering clauses, legal parties, entities, and dates for deep structural understanding.
+- Knowledge Graph Mapping: Automatically constructs relationship graphs (via NetworkX) clustering clauses, legal parties, entities and dates for deep structural understanding.
 - Semantic Chunking: Intelligently breaks down extensive legal documents into searchable paragraph clusters.
 
 3. Core LLM Functionality
