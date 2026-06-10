@@ -2,7 +2,7 @@
   <img src="docs/banner.png" alt="SENA-Lex Banner" width="100%" />
 </p>
 
-<h1 align="center">SENA-Lex</h1>
+<h1 align="center">SENA-Lex!</h1>
 <h3 align="center">Offline Defense-Grade AI for Computational Law</h3>
 
 <p align="center">
