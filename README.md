@@ -274,6 +274,7 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 ## 👤 Author
 
 **Rishav Kumar**
+**Abhinav Kesarwani**
 
 - GitHub: [@rishavgsv](https://github.com/rishavgsv)
 
