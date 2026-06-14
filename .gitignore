@@ -60,3 +60,6 @@ npm-debug.log*
 # ── Tests & Misc ──────────────────────────────
 *.test.db
 test_doc.txt
+sena_lex_dataset/
+research/
+*.pdf

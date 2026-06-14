@@ -2,12 +2,15 @@ import fitz  # PyMuPDF
 import logging
 import re
 from typing import List, Dict
-import spacy
-
 try:
-    nlp = spacy.load("en_core_web_sm")
-except OSError:
-    logging.warning("spacy model 'en_core_web_sm' not found. Falling back to regex-only.")
+    import spacy
+    try:
+        nlp = spacy.load("en_core_web_sm")
+    except OSError:
+        logging.warning("spacy model 'en_core_web_sm' not found. Falling back to regex-only.")
+        nlp = None
+except Exception as e:
+    logging.warning(f"Failed to import/load spacy ({e}). Falling back to regex-only.")
     nlp = None
 
 def extract_legal_hierarchies(text: str, page_num: int, filename: str) -> List[Dict]:

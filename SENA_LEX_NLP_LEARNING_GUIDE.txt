@@ -1,0 +1,133 @@
+===========================================================================
+ SENA-LEX: DEEP NLP LEARNING GUIDE & SYSTEM ARCHITECTURE
+===========================================================================
+
+Welcome to the SENA-Lex deep dive! 
+This guide is designed to act as your mentor, walking you through this defense-grade legal reasoning AI. We will go beyond "what" the code does and focus heavily on "why" and "how" from a Natural Language Processing (NLP) perspective. It is tailored to help you conceptually understand how modern NLP, Retrieval-Augmented Generation (RAG), and traditional machine learning algorithms converge in a real-world, highly secure system.
+
+---------------------------------------------------------------------------
+ 1. CODEBASE UNDERSTANDING & HIGH-LEVEL OVERVIEW
+---------------------------------------------------------------------------
+SENA-Lex is built to operate 100% offline. Legal professionals cannot send contracts to public clouds (like OpenAI) due to attorney-client privilege. The system architecture guarantees zero data leakage. 
+
+* Overall Architecture:
+  1. Frontend (Client): A React-based interface where users upload PDFs/DOCXs and type questions. 
+  2. Backend Context (FastAPI framework): A Python-based server that receives documents, processes them using NLP, stores them in vector databases, and orchestrates the inference logic.
+  3. AI Engine (Ollama): A local container that runs the mathematical weights of the large language model (LLM), isolated from the internet.
+
+* High-Level Data Flow:
+  [Document Upload] -> [Backend Parsing] -> [Logical NLP Chunking] -> [Vector Embedding Generation] -> [Stored in FAISS / BM25].
+  When a user asks: [Query string] -> [Hybrid Search extracts Context] -> [Context + Query sent to LLM] -> [LLM generates draft] -> [Secondary NLP Verification] -> [UI Stream].
+
+---------------------------------------------------------------------------
+ 2. DEEP NLP BREAKDOWN (CORE COMPONENTS)
+---------------------------------------------------------------------------
+
+A. Intelligent Legal Chunking (ingest.py)
+* What is it doing? Instead of cutting a document arbitrarily (e.g., every 100 words), it segments text based on legal hierarchy (e.g., separating "Article 1" from "Article 2"). It then uses heuristics to tag these clauses as 'Liability', 'Payment', etc.
+* Why? A 100-word blind cut might sever a termination clause in half. If the LLM only sees half a clause, it generates inaccurate answers.
+* How? Python Regular Expressions (regex) identify structural patterns (`^\s*((?:Section|Article|Clause)`). `spaCy` (a popular NLP library) checks the lowercase stems for words like "liabl" or "terminat" to classify the chunk.
+* Core Concepts: Tokenization, Heuristic Text Classification, Rule-based NLP. 
+* Trade-offs: Using regex and rules is blazing fast and deterministic, but inflexible. If a document formats sections as "¶ 1" instead of "Section 1", the regex might miss it without updates.
+
+B. Dual-Index Hybrid Search (vector_store.py)
+* What? When the user searches, the system runs two algorithms simultaneously: Dense Semantic Search (FAISS) and Sparse Lexical Search (BM25). 
+* Why? 
+  - Semantic Search (Dense) understands *meaning*. If you search "company risks," it knows "liability of Acme Corp" is mathematically identical.
+  - Lexical Search (Sparse) expects *exact matches*. If you search for the exact legal statute "U.C.C. § 2-207", semantic models often fail, but lexical models excel. Hybrid marries the two.
+* How? 
+  - FAISS takes text and passes it to an embedding model (like `nomic-embed-text`) that converts sentences to high-dimensional float arrays (vectors).
+  - BM25 dynamically counts Keyword Term Frequencies (TF-IDF mapping).
+* Core Concepts: Word Embeddings (Vectorization), TF-IDF (Term Frequency-Inverse Document Frequency), Cosine/L2 Similarity, Semantic Search.
+* Trade-offs: Maintaining two indexes consumes more memory and computes slower than just one, but recall accuracy drastically improves. 
+
+C. Knowledge Graph Extraction (graph_engine.py)
+* What? Extracts specific "Named Entities" (Organizations, Dates, Money) from text and maps them as nodes in a graph.
+* Why? Traditional RAG fails at "multi-hop" reasoning. If you ask, "What are the rules regarding Google?", vector search might miss secondary sub-clauses. A graph explicitly connects the "Google" node to every Clause node where it was mentioned. 
+* How? It uses `spaCy` to execute Named Entity Recognition (NER). If spaCy detects "ORG" (Organization), it saves it as a node in `NetworkX` linked with a `MENTIONS` edge.
+* Core Concepts: Named Entity Recognition (NER), Knowledge Graphs (KG).
+
+D. Local RAG & Anti-Hallucination (llm.py)
+* What? Feeds the retrieved documents into the LLM context limits and asks for an answer. Importantly, it implements a "Verification Trace".
+* Why? LLMs natively hallucinate (make things up). The verification trace forces the model to read its own generated draft and grade itself for factual accuracy *before* the user trusts it.
+* How? A low-temperature (T=0.1) prompt instructs the model to draft the answer. Immediately after, a secondary prompt is fired holding the Source Text alongside the Draft Text. It asks the model to output 'VALID' or 'INVALID' based strictly on whether it hallucinated.
+* Core Concepts: Retrieval-Augmented Generation (RAG), Prompt Engineering, Model Temperature (predictability tuning).
+
+E. Mathematical Confidence Engine (confidence_engine.py)
+* What? It calculates a mathematical numerical score (0 to 100%) indicating how much the user should trust the generated answer.
+* Why? Transparency. A lawyer shouldn't blindly trust a black-box LLM.
+* How? It blends 5 algorithmic scores. For instance, 'Faithfulness' converts the LLM's final answer back to a vector and compares its Cosine Similarity against the original document vector. 'Citation Coverage' relies on Jaccard Overlap to check if the exact noun phrases in the generated text actually exist in the source document.
+* Core Concepts: Jaccard Similarity (Set Overlap), Cosine Similarity, Stopword removal, Semantic matching mapping.
+
+---------------------------------------------------------------------------
+ 3. STEP-BY-STEP PIPELINE EXECUTION
+---------------------------------------------------------------------------
+
+Here is the narrative of a user query traveling through SENA-Lex:
+1. Input Handling: The user types a query ("What is the termination penalty?").
+2. Query Preprocessing / Decomposition: The LLM is quickly asked to break this query down if it is overly complex.
+3. Feature Extraction (Vectorization): The string "What is the termination penalty?" is passed to the embedding model, transforming into a List of 768 decimal numbers (vectors).
+4. Semantic / Lexical Retrieval: The system calculates the mathematical distance (L2 norm) between your query vector and all document vectors (FAISS). Simultaneously, it counts exact keyword hits (BM25Okapi). It merges the top results into a "Context" string.
+5. Model Inference: The Context String + the User Prompts are shipped locally to Ollama (`sena-lex-mistral`). The LLM calculates attention mechanisms internally and predicts the next token sequentially, generating a legal answer. 
+6. Post-Processing & Output Formulation: The `confidence_engine.py` runs mathematically measuring the Cosine similarity between the new string generated inside Step 5 against the Context String found in Step 4. All math is mapped to a JSON dictionary. The AI texts + JSON breakdown are streamed to the user via Server-Sent Events (SSE).
+
+---------------------------------------------------------------------------
+ 4. CODE-LEVEL WALKTHROUGH 
+---------------------------------------------------------------------------
+
+* `main.py`
+  - Acts as the central nervous system (routing).
+  - Uses `FastAPI` decorators (`@app.post("/api/query")`) to bind URLs to Python functions.
+  - Implements the multi-stage asynchronous processing (handling uploads in the background so the UI doesn't freeze).
+  
+* `ingest.py`
+  - `extract_legal_hierarchies()`: The key parser. Loops through strings detecting regex targets, building text arrays, and manually indexing chunk sequences.
+  
+* `vector_store.py`
+  - `_FallbackEmbedder`: A purely mathematical backup class. Normal embeddings require Neural Networks. This class mathematically maps words to fixed hash buckets, enabling "offline semantic search" without neural networks if the GPU breaks.
+  - `self.index = faiss.IndexFlatL2()`: Instructs FAISS to create a flat (exact) vector space graph using Euclidean distance math. 
+  - `BM25Okapi`: From the `rank_bm25` library, it constructs the sparse array mapping.
+
+* `confidence_engine.py`
+  - `_extract_key_terms()`: Drops stopwords (like 'and', 'the'), and utilizes `spaCy` Noun Chunks to find the "meat" of the data. 
+  - `_cosine_similarity()`: Bare-metal `numpy` formula (Dot product over unified vector norms).
+
+---------------------------------------------------------------------------
+ 5. CONCEPT MAPPING SUMMARY
+---------------------------------------------------------------------------
+Whenever you look at a feature, use this cheat-sheet:
+* Finding clauses visually → Regex Pattern Matching.
+* Grouping words logically → Text Preprocessing & Chunking.
+* Extracting "Names/Places" → spaCy Named Entity Recognition (NER).
+* Understanding contextual "meaning" → Dense Vector Embeddings (Ollama).
+* Finding exact words → TF-IDF Sparse Retrieval (BM25).
+* Combining both searches → Hybrid Search/Retrieval.
+* Forcing LLM to read documents → RAG (Retrieval Augmented Generation).
+* Calculating AI text accuracy vs Original text → Cosine Similarity & Jaccard Index.
+
+---------------------------------------------------------------------------
+ 6. DESIGN DECISIONS & IMPROVEMENTS
+---------------------------------------------------------------------------
+
+Why these choices?
+* Hybrid Search over Pure Semantic Search: Embedding models are bad at recalling exact numbers (e.g., Hex codes, specific financial sums). BM25 handles this beautifully. 
+* Local Ollama over OpenAI API: Absolute privacy for law. 
+
+Future Improvements (For Scalability & Accuracy):
+1. GraphRAG: Currently, the Knowledge graph is experimental. Wiring the Knowledge Graph dynamically into the generation context window would allow the LLM to understand relationships across fifty disconnected documents seamlessly.
+2. Advanced Vector DB: FAISS `IndexFlatL2` stores everything in RAM. Scaling to 100,000 documents will crash the system. Moving to a persistent DB like Milvus, Qdrant, or ChromaDB will be necessary for large-scale enterprise data.
+3. Fine-Tuning: Instead of standard "Mistral," the LLM could be fine-tuned using LoRA adapters specifically trained on high-court legal opinions.
+
+---------------------------------------------------------------------------
+ 7. INTERFACE / FRONTEND SUMMARY 
+---------------------------------------------------------------------------
+The UI is built purely to provide an elegant, zero-latency visual experience representing complex backend tasks smoothly.
+* Core: React.js (via Vite) ensures snappy component mounts.
+* Styling: Tailwind CSS allows complex dark-mode grids without writing heavy CSS files.
+* Animations: Framer Motion provides physics-based DOM transitions (the smooth sliding out of chat bubbles).
+* Connectivity: Axios interfaces with FastAPI via streaming buffers, enabling the frontend to "Typewriter" format the data before the API is completely finished analyzing.
+
+---------------------------------------------------------------------------
+Keep this guide handy as you explore the code—it is the conceptual bridge between the theoretical ML texts you learn and the actual functioning product in your folder!
+
+Happy Coding.

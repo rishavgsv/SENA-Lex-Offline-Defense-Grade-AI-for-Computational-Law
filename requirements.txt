@@ -1,0 +1,16 @@
+fastapi<0.104.0
+uvicorn
+python-multipart
+pymupdf
+sentence-transformers
+faiss-cpu
+pydantic<2.0.0
+spacy<3.8.0
+networkx
+rank-bm25
+pandas
+pytesseract
+pdf2image
+tqdm
+paddlepaddle-gpu
+paddleocr
